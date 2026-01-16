@@ -1,5 +1,7 @@
 package model;
+public class Evaluator extends User{
 
-public class Evaluator {
-    
+    public Evaluator(String id, String username, String password) {
+        super(id, username, password, "EVALUATOR");
+    }
 }

@@ -1,16 +1,18 @@
 package model;
 
 public class Student extends User {
-    private String researchTitle;
-    private String presentationType; 
-    private String filePath;
+    private Submission submission; 
 
     public Student(String id, String username, String password) {
         super(id, username, password, "STUDENT");
-        
-        this.researchTitle = "N/A";
-        this.presentationType = "Oral";
+        this.submission = null; 
     }
-    public void setResearchTitle(String title) { this.researchTitle = title; }
-    public String getResearchTitle() { return researchTitle; }
+
+    public void submitPresentation(String title, String abs, String type, String path) {
+        this.submission = new Submission(title, abs, type, path);
+    }
+
+    public Submission getSubmission() { return submission; }
+    
+    public boolean hasSubmitted() { return submission != null; }
 }

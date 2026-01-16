@@ -27,7 +27,6 @@ public class MainFrame extends JFrame {
         // Pass 'this' to LoginPanel so it can switch screens
         mainContainer.add(new LoginPanel(this), "LOGIN");
         
-        // Placeholders
         mainContainer.add(new JLabel("Student Dashboard - Coming Soon"), "STUDENT");
         mainContainer.add(new JLabel("Coordinator Dashboard - Coming Soon"), "COORDINATOR");
 
