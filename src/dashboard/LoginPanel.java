@@ -49,8 +49,8 @@ public class LoginPanel extends JPanel {
                 } else if (role.equalsIgnoreCase("admin")) {
                     mainFrame.switchScreen("ADMIN");
                     
-                } else if (role.equalsIgnoreCase("lecturer")) {
-                    mainFrame.switchScreen("LECTURER");
+                } else if (role.equalsIgnoreCase("evaluator")) {
+                    mainFrame.switchScreen("EVALUATOR");
                     
                 }else {
                     JOptionPane.showMessageDialog(this, "Unknown Role: " + role);
