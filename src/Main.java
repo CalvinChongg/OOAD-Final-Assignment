@@ -1,21 +1,16 @@
 import dashboard.MainFrame;
-import database.SQLiteConnection; // Import your frame from the dashboard folder
-import java.util.ArrayList;
-import java.util.List;
+import database.SQLiteConnection;
 import javax.swing.SwingUtilities;
-import model.*;
 
 public class Main {
-   public static void main(String[] args) {
-
-        // Initialize database once
+    public static void main(String[] args) {
+        // 1. Initialize Database (Create table if missing)
         SQLiteConnection.initializeDatabase();
-
-       // 2. Launch
-       SwingUtilities.invokeLater(() -> {
-           List<User> users = new ArrayList<>();
-           MainFrame frame = new MainFrame(users);
-           frame.setVisible(true);
-       });
-   }
+        
+        // 2. Launch the App
+        SwingUtilities.invokeLater(() -> {
+            MainFrame frame = new MainFrame();
+            frame.setVisible(true);
+        });
+    }
 }
