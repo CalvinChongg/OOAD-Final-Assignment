@@ -13,17 +13,25 @@ public class SQLiteConnection {
     }
 
     public static void initializeDatabase() {
-        var sql = """
+        String CreateUserTable = """
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL UNIQUE,
-                password TEXT NOT NULL
+                password TEXT NOT NULL,
+                role TEXT NOT NULL
             );
+            """;
+        
+        String seedAdmin = """
+                INSERT OR IGNORE INTO users (username, password, role)
+                VALUES ('admin', 'admin123', 'COORDINATOR');
             """;
 
         try (var conn = connect();
              var stmt = conn.createStatement()) {
-            stmt.execute(sql);
+            stmt.execute(CreateUserTable);
+            stmt.execute(seedAdmin);
+            System.out.println("Database initialized");
         } catch (SQLException e) {
             e.printStackTrace();
         }

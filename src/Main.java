@@ -13,8 +13,7 @@ public class Main {
 
        // 2. Launch
        SwingUtilities.invokeLater(() -> {
-           List<User> users = new ArrayList<>();
-           MainFrame frame = new MainFrame(users);
+           MainFrame frame = new MainFrame();
            frame.setVisible(true);
        });
    }
