@@ -23,7 +23,11 @@ public class MainFrame extends JFrame {
         // Add the panels
         mainContainer.add(new LoginPanel(this), "LOGIN");
         mainContainer.add(new StudentPanel(), "STUDENT");
-        mainContainer.add(new JLabel("Coordinator Dashboard - Coming Soon"), "COORDINATOR");
+        mainContainer.add(new CoordinatorPanel(), "COORDINATOR");
+        mainContainer.add(new EvaluatorPanel(), "EVALUATOR");
+        mainContainer.add(new AdminPanel(), "ADMIN");
+
+
 
         add(mainContainer);
     }

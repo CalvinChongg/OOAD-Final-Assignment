@@ -3,8 +3,6 @@ package dashboard;
 import dao.UserDAO;
 import java.awt.*;
 import javax.swing.*;
-import model.Coordinator;
-import model.Student;
 
 public class LoginPanel extends JPanel {
     private MainFrame mainFrame;
@@ -43,14 +41,18 @@ public class LoginPanel extends JPanel {
                 
                 // IMPORTANT: We use "0" as a dummy ID here to satisfy your Constructor
                 if (role.equalsIgnoreCase("student")) {
-                    mainFrame.setLoggedInUser(new Student("0", uIn, pIn));
                     mainFrame.switchScreen("STUDENT");
                     
                 } else if (role.equalsIgnoreCase("coordinator")) {
-                    mainFrame.setLoggedInUser(new Coordinator("0", uIn, pIn));
                     mainFrame.switchScreen("COORDINATOR");
                     
-                } else {
+                } else if (role.equalsIgnoreCase("admin")) {
+                    mainFrame.switchScreen("ADMIN");
+                    
+                } else if (role.equalsIgnoreCase("lecturer")) {
+                    mainFrame.switchScreen("LECTURER");
+                    
+                }else {
                     JOptionPane.showMessageDialog(this, "Unknown Role: " + role);
                 }
             } else {
