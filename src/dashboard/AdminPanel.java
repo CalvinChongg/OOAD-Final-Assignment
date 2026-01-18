@@ -3,14 +3,13 @@ package dashboard;
 import java.awt.*;
 import javax.swing.*;
 
-
-public class CoordinatorPanel extends JPanel {
+public class AdminPanel extends JPanel {
     
-    public CoordinatorPanel() {
+    public AdminPanel() {
         setLayout(new BorderLayout());
         setBackground(Color.LIGHT_GRAY); 
         
-        JLabel welcome = new JLabel("Welcome to the Coordinator Dashboard", SwingConstants.CENTER);
+        JLabel welcome = new JLabel("Welcome to the Admin Dashboard", SwingConstants.CENTER);
         welcome.setFont(new Font("Arial", Font.BOLD, 24));
         
         add(welcome, BorderLayout.CENTER);

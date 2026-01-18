@@ -5,14 +5,14 @@ import javax.swing.*;
 import model.User;
 
 public class MainFrame extends JFrame {
-
+    
     private User loggedInUser;
-
+    
     private CardLayout cardLayout;
     private JPanel mainContainer;
 
+    // No arguments in constructor
     public MainFrame() {
-
         setTitle("Seminar System (Prototype)");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -21,11 +21,14 @@ public class MainFrame extends JFrame {
         cardLayout = new CardLayout();
         mainContainer = new JPanel(cardLayout);
 
-        // Login panel will talk to UserDAO
+        // Add the panels
         mainContainer.add(new LoginPanel(this), "LOGIN");
+        mainContainer.add(new StudentPanel(), "STUDENT");
+        mainContainer.add(new CoordinatorPanel(), "COORDINATOR");
+        mainContainer.add(new EvaluatorPanel(), "EVALUATOR");
+        mainContainer.add(new AdminPanel(), "ADMIN");
 
-        mainContainer.add(new JLabel("Student Dashboard - Coming Soon"), "STUDENT");
-        mainContainer.add(new JLabel("Coordinator Dashboard - Coming Soon"), "COORDINATOR");
+
 
         add(mainContainer);
     }
@@ -34,11 +37,7 @@ public class MainFrame extends JFrame {
         cardLayout.show(mainContainer, screenName);
     }
 
-    public void setLoggedInUser(User user) {
-        this.loggedInUser = user;
-    }
-
-    public User getLoggedInUser() {
-        return loggedInUser;
+    public void setLoggedInUser(User user) { 
+        this.loggedInUser = user; 
     }
 }

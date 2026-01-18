@@ -4,6 +4,7 @@
     ],
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
-        "c:\\Users\\ccalv\\Documents\\GitHub Collabs\\OOAD-Final-Assignment\\lib\\sqlite-jdbc-3.51.1.0.jar"
+        "c:\\Users\\ccalv\\Documents\\GitHub Collabs\\OOAD-Final-Assignment\\lib\\sqlite-jdbc-3.51.1.0.jar",
+        "lib/sqlite-jdbc-3.51.1.0.jar"
     ]
 }
