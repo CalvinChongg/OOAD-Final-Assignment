@@ -43,7 +43,7 @@ public class UserDAO {
 
     public String getUserRole(String username) {
         String role = "";
-        // WE ARE USING 'roles' (PLURAL) HERE TO MATCH YOUR REQUEST
+
         String sql = "SELECT roles FROM users WHERE username = ?";
         
         try (Connection conn = SQLiteConnection.connect();
@@ -53,7 +53,7 @@ public class UserDAO {
             ResultSet rs = pstmt.executeQuery();
             
             if (rs.next()) {
-                role = rs.getString("roles"); // This must match your DB column exactly!
+                role = rs.getString("roles");
             }
         } catch (SQLException e) {
             System.out.println("ROLE ERROR: " + e.getMessage());

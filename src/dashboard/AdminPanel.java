@@ -5,7 +5,7 @@ import javax.swing.*;
 
 public class AdminPanel extends JPanel {
     
-    public AdminPanel() {
+    public AdminPanel(MainFrame mainFrame) {
         setLayout(new BorderLayout());
         setBackground(Color.LIGHT_GRAY); 
         
@@ -16,7 +16,9 @@ public class AdminPanel extends JPanel {
         
         // Logout Button
         JButton logout = new JButton("Logout");
-        logout.addActionListener(e -> System.exit(0));
+        logout.addActionListener((e -> {
+        mainFrame.switchScreen("LOGIN");
+        }));
         add(logout, BorderLayout.SOUTH);
     }
 }

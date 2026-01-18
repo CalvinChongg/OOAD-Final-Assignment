@@ -22,15 +22,18 @@ public class SQLiteConnection {
             );
             """;
         
-        String seedAdmin = """
-                INSERT OR IGNORE INTO users (username, password, role)
-                VALUES ('admin', 'admin123', 'COORDINATOR');
-            """;
+        String seedUsers = """
+            INSERT OR IGNORE INTO users (username, password, role) VALUES
+            ('student1', 'pass', 'STUDENT'),
+            ('eval1', 'pass', 'EVALUATOR'),
+            ('coord1', 'pass', 'COORDINATOR'),
+            ('admin1', 'pass', 'ADMIN');
+        """;
 
         try (var conn = connect();
              var stmt = conn.createStatement()) {
             stmt.execute(CreateUserTable);
-            stmt.execute(seedAdmin);
+            stmt.execute(seedUsers);
             System.out.println("Database initialized");
         } catch (SQLException e) {
             e.printStackTrace();
