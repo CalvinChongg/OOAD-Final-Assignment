@@ -21,5 +21,7 @@ public class CoordinatorPanel extends JPanel {
         mainFrame.switchScreen("LOGIN");
         }));
         add(logout, BorderLayout.SOUTH);
+
+        logout.addActionListener(e -> mainFrame.switchScreen("LOGIN"));
     }
 }
