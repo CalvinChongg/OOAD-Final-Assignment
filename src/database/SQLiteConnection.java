@@ -113,7 +113,7 @@ public class SQLiteConnection {
 
         // Seed Initial Users
         String seedUsers = """
-            INSERT OR IGNORE INTO users (username, password, role) VALUES
+            INSERT OR IGNORE INTO users (username, password, roles) VALUES
             ('ali', '123', 'STUDENT'),
             ('admin', 'admin123', 'ADMIN');
             ('coordinator', 'coordinator123', 'COORDINATOR'),
