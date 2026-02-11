@@ -1,11 +1,11 @@
-import database.SQLiteConnection;
 import dashboard.MainFrame;
+import database.SQLiteConnection;
 import javax.swing.SwingUtilities;
 
 public class Main {
     public static void main(String[] args) {
-        // Singleton pattern access
-        SQLiteConnection.getInstance().initializeDatabase();
+        // Initialize database (Singleton)
+        SQLiteConnection.getInstance();
 
         SwingUtilities.invokeLater(() -> {
             new MainFrame().setVisible(true);
