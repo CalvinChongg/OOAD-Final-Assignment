@@ -7,6 +7,6 @@ public class HandicappedVehicle extends Vehicle {
     }
     @Override
     public boolean canPark(SpotType spotType) {
-        return true; // can park anywhere, but may get discount only in Handicapped spot
+        return spotType == SpotType.REGULAR || spotType == SpotType.RESERVED || spotType == SpotType.HANDICAPPED; // can park anywhere, but may get discount only in Handicapped spot
     }
 }

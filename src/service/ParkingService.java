@@ -48,7 +48,6 @@ public class ParkingService {
     }
 
     public boolean assignSpot(String licensePlate, String spotId, String vehicleTypeStr, boolean hasCard, boolean isVIP) {
-        //System.out.println("Assigning spot " + spotId + " to " + licensePlate);
         Connection conn = dbManager.getConnection();
         try {
             conn.setAutoCommit(false);
@@ -63,7 +62,7 @@ public class ParkingService {
             // Generate ticket ID: T-PLATE-TIMESTAMP
             String ticketId = "T-" + licensePlate + "-" + System.currentTimeMillis();
             PreparedStatement pstmt2 = conn.prepareStatement(
-                "INSERT INTO ActiveTickets (ticketID, licensePlate, vehicleType, spotID, entryTime) VALUES (?,?,?,?, CURRENT_TIMESTAMP)");
+                "INSERT INTO ActiveTickets (ticketID, licensePlate, vehicleType, spotID, entryTime, hasHandicappedCard, isVIP) VALUES (?,?,?,?, CURRENT_TIMESTAMP, ?, ?)");
             pstmt2.setString(1, ticketId);
             pstmt2.setString(2, licensePlate);
             pstmt2.setString(3, vehicleTypeStr);
