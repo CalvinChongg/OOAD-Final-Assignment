@@ -97,17 +97,19 @@ public class ParkingService {
     public ExitData prepareExit(String licensePlate) {
         ExitData data = new ExitData();
         Connection conn = dbManager.getConnection();
-        // 1. Find active ticket
+        
         String sql = "SELECT * FROM ActiveTickets WHERE licensePlate = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, licensePlate);
             ResultSet rs = pstmt.executeQuery();
-            if (!rs.next()) return null; // no active parking
+            if (!rs.next()) return null;
+
             data.ticketId = rs.getString("ticketID");
             data.spotId = rs.getString("spotID");
             data.entryTime = rs.getString("entryTime");
+            String vehicleType = rs.getString("vehicleType");
 
-            // 2. Get spot details
+            // 1. Get Spot Details
             PreparedStatement pstmt2 = conn.prepareStatement("SELECT * FROM ParkingSpots WHERE spotID = ?");
             pstmt2.setString(1, data.spotId);
             ResultSet rs2 = pstmt2.executeQuery();
@@ -116,32 +118,37 @@ public class ParkingService {
                 data.hourlyRate = rs2.getDouble("hourlyRate");
             }
 
-            // 3. Calculate duration (ceiling hours)
+            // 2. Calculate Duration (Ceiling Hours)
             LocalDateTime entry = LocalDateTime.parse(data.entryTime.replace(" ", "T"));
             LocalDateTime now = LocalDateTime.now();
             data.hours = ChronoUnit.MINUTES.between(entry, now) / 60;
-            if (ChronoUnit.MINUTES.between(entry, now) % 60 != 0) data.hours++; // ceiling
+            if (ChronoUnit.MINUTES.between(entry, now) % 60 != 0) data.hours++;
 
-            // 4. Parking fee
-            data.parkingFee = data.hours * data.hourlyRate;
-            // Handicapped discount: free if parked in Handicapped spot with card
-            if (data.spotType.equals("HANDICAPPED") && hasHandicappedCard(licensePlate)) {
-                data.parkingFee = 0;
+            // 3. Apply Rate Strategy
+            RateStrategy rateStrategy;
+            if (vehicleType.equalsIgnoreCase("Handicapped")) {
+                rateStrategy = new HandicappedRateStrategy(hasHandicappedCard(licensePlate), data.spotType);
+            } else {
+                rateStrategy = new StandardRateStrategy(data.hourlyRate);
             }
+            data.parkingFee = rateStrategy.calculateFee((int) data.hours);
 
-            // 5. Fines
+            // 4. Fine Detection & Calculation
             FineService fineService = FineService.getInstance();
-            // Overstay (>24h)
-            if (data.hours > 24) {
-                data.overstayFine = fineService.calculateOverstayFine(data.hours);
-            }
-            // Reserved misuse (parked in reserved without VIP)
-            if (data.spotType.equals("RESERVED") && !isVIP(licensePlate)) {
-                data.misuseFine = 50.0; // flat fine for misuse (can be changed)
-            }
-            double totalFine = data.overstayFine + data.misuseFine;
 
-            // 6. Unpaid fines from previous visits
+            // A. Overstay Fine (>24h)
+            if (data.hours > 24) {
+                data.overstayFine = fineService.calculateOverstayFine((int) data.hours);
+            }
+
+            // B. Misuse Fines (Wrong Spot Detection)
+            if (data.spotType.equals("RESERVED") && !isVIP(licensePlate)) {
+                data.misuseFine = 50.0; // Flat fine for non-VIP in Reserved spot
+            } else if (data.spotType.equals("HANDICAPPED") && !hasHandicappedCard(licensePlate)) {
+                data.misuseFine = 100.0; // Heavier fine for parking in OKU spot illegally
+            }
+
+            // 5. Unpaid Fines check
             PreparedStatement pstmt3 = conn.prepareStatement("SELECT totalAmount FROM UnpaidFines WHERE licensePlate = ?");
             pstmt3.setString(1, licensePlate);
             ResultSet rs3 = pstmt3.executeQuery();
@@ -149,7 +156,9 @@ public class ParkingService {
                 data.unpaidFines = rs3.getDouble("totalAmount");
             }
 
-            data.totalDue = data.parkingFee + totalFine + data.unpaidFines;
+            // Final total calculation including all dynamic fines
+            data.totalDue = data.parkingFee + data.overstayFine + data.misuseFine + data.unpaidFines;
+            
         } catch (SQLException e) { e.printStackTrace(); }
         return data;
     }
@@ -205,5 +214,79 @@ public class ParkingService {
         } finally {
             try { conn.setAutoCommit(true); } catch (SQLException e) {}
         }
+    }
+
+    public boolean finalizeTransaction(String licensePlate, String paymentMethod) {
+        Connection conn = dbManager.getConnection();
+        try {
+            // 1. Start a Transaction to ensure data integrity
+            conn.setAutoCommit(false);
+
+            // 2. Fetch the "Active" data (The 'Brain' part)
+            ExitData data = prepareExit(licensePlate);
+            if (data == null) {
+                System.out.println("Error: No active parking found for " + licensePlate);
+                return false;
+            }
+
+            // 3. Move to 'Tickets' and record the final calculation
+            String insertSql = "INSERT INTO Tickets (ticketID, licensePlate, spotID, entryTime, exitTime, parkingFee, fineAmount, totalPaid, paymentMethod) " +
+                            "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?)";
+            
+            try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+                pstmt.setString(1, data.ticketId);
+                pstmt.setString(2, licensePlate);
+                pstmt.setString(3, data.spotId);
+                pstmt.setString(4, data.entryTime);
+                pstmt.setDouble(5, data.parkingFee); // The RM 85.0 you saw earlier
+                pstmt.setDouble(6, data.overstayFine + data.misuseFine);
+                pstmt.setDouble(7, data.totalDue);
+                pstmt.setString(8, paymentMethod);
+                pstmt.executeUpdate();
+            }
+
+            // 4. Delete from 'ActiveTickets'
+            PreparedStatement deleteActive = conn.prepareStatement("DELETE FROM ActiveTickets WHERE ticketID = ?");
+            deleteActive.setString(1, data.ticketId);
+            deleteActive.executeUpdate();
+
+            // 5. Release the Spot (Set to Available)
+            PreparedStatement releaseSpot = conn.prepareStatement("UPDATE ParkingSpots SET status = 'Available', currentPlate = NULL WHERE spotID = ?");
+            releaseSpot.setString(1, data.spotId);
+            releaseSpot.executeUpdate();
+
+            // 6. Commit all changes
+            conn.commit();
+            System.out.println("Biller Manager: Successfully finalized bill for " + licensePlate);
+            return true;
+
+        } catch (SQLException e) {
+            try { conn.rollback(); } catch (SQLException ex) {}
+            e.printStackTrace();
+            return false;
+        } finally {
+            try { conn.setAutoCommit(true); } catch (SQLException e) {}
+        }
+    }
+
+    private boolean isVIP(String plate) {
+        String sql = "SELECT isVIP FROM Vehicles WHERE licensePlate = ?";
+        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
+            pstmt.setString(1, plate);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) return rs.getInt("isVIP") == 1; // Assuming 1 is true
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+
+    // Helper to check for a valid Handicapped/OKU status
+    private boolean hasHandicappedCard(String plate) {
+        String sql = "SELECT hasOKUCard FROM Vehicles WHERE licensePlate = ?";
+        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
+            pstmt.setString(1, plate);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) return rs.getInt("hasOKUCard") == 1;
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
     }
 }

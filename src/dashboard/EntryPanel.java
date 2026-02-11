@@ -3,6 +3,7 @@ package dashboard;
 
 import composite.ParkingSpot;
 import java.awt.*;
+import java.time.LocalDateTime;
 import java.util.List;
 import javax.swing.*;
 import model.*;
@@ -91,11 +92,10 @@ public class EntryPanel extends JPanel {
 
         boolean success = parkingService.assignSpot(plate, spotId, type, hasCard, vip);
         if (success) {
-            JOptionPane.showMessageDialog(this, "Parking successful!\nTicket ID: T-" + plate + "-" + System.currentTimeMillis());
-            spotListModel.clear();
-            parkButton.setEnabled(false);
-            plateField.setText("");
-        } else {
+            // Show a detailed confirmation including the spot type and entry time
+            String message = "Parking Successful!\n" + "Plate: " + plate + "\n" + "Spot: " + spotId + "\n" + "Entry Time: " + LocalDateTime.now().withNano(0);
+            JOptionPane.showMessageDialog(this, message, "Ticket Issued", JOptionPane.INFORMATION_MESSAGE);
+        }else {
             JOptionPane.showMessageDialog(this, "Spot already taken or error occurred");
         }
     }

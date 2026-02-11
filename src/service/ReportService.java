@@ -59,4 +59,18 @@ public class ReportService {
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
     }
+
+    public void testTicketCalculation() {
+        // This simulates how your ReportingPanel would read the archived data
+        try (Connection conn = SQLiteConnection.getInstance().getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT SUM(totalPaid) FROM Tickets")) {
+            
+            if (rs.next()) {
+                double revenue = rs.getDouble(1);
+                System.out.println("Total Revenue in Tickets Archive: RM " + revenue);
+                // Expected for this sample: RM 410.00
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
 }

@@ -1,8 +1,8 @@
-
 package service;
 
 import database.SQLiteConnection;
-import java.sql.*;
+import java.sql.*; // Use your Strategy classes
+import model.*;
 
 public class FineService {
     private static FineService instance;
@@ -14,33 +14,25 @@ public class FineService {
         return instance;
     }
 
-    public String getCurrentScheme() {
+    // Fetches which strategy to use from the database
+    public FineStrategy getActiveStrategy() {
+        String scheme = "FIXED"; // Default
         try (Statement stmt = dbManager.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery("SELECT schemeType FROM FineSettings WHERE id = 1")) {
-            if (rs.next()) return rs.getString("schemeType");
+            if (rs.next()) scheme = rs.getString("schemeType");
         } catch (SQLException e) { e.printStackTrace(); }
-        return "FIXED";
-    }
 
-    public void setScheme(String scheme) {
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(
-                "UPDATE FineSettings SET schemeType = ? WHERE id = 1")) {
-            pstmt.setString(1, scheme);
-            pstmt.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
-    }
-
-    public double calculateOverstayFine(long hoursOver24) {
-        String scheme = getCurrentScheme();
+        // AUTOMATED: Returns YOUR strategy objects based on DB setting
         switch (scheme) {
-            case "FIXED": return 50.0;
-            case "PROGRESSIVE":
-                if (hoursOver24 <= 24) return 50.0;
-                else if (hoursOver24 <= 48) return 150.0; // 50+100
-                else if (hoursOver24 <= 72) return 300.0; // 50+100+150
-                else return 500.0; // 50+100+150+200
-            case "HOURLY": return hoursOver24 * 20.0;
-            default: return 0;
+            case "PROGRESSIVE": return new ProgressiveFineStrategy();
+            case "HOURLY": return new HourlyFineStrategy();
+            default: return new FixedFineStrategy();
         }
+    }
+
+    public double calculateOverstayFine(int hours) {
+        if (hours <= 24) return 0.0;
+        // This now uses your actual Strategy logic!
+        return getActiveStrategy().calculateFine(hours);
     }
 }
