@@ -1,10 +1,6 @@
 package database;
 
-import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class SQLiteConnection {
     private static SQLiteConnection instance;
@@ -12,13 +8,12 @@ public class SQLiteConnection {
 
     private SQLiteConnection() {
         try {
-            File dbDir = new File("database");
-            if (!dbDir.exists()) dbDir.mkdir();
-
-            String url = "jdbc:sqlite:database/parking_lot.db";
+            // Updated path: This moves the .db file into the src folder
+            // The "./src/" ensures it looks for the src folder relative to your project root
+            String url = "jdbc:sqlite:./src/parking_lot.db"; 
             this.connection = DriverManager.getConnection(url);
         } catch (SQLException e) {
-            System.err.println("Connection failed: " + e.getMessage());
+            System.err.println("Database Connection Error: " + e.getMessage());
         }
     }
 
@@ -36,10 +31,17 @@ public class SQLiteConnection {
     public void initializeDatabase() {
         if (connection == null) return;
         try (Statement stmt = connection.createStatement()) {
+            // Create spots, tickets, and fines tables
             stmt.execute("CREATE TABLE IF NOT EXISTS ParkingSpots (SpotID TEXT PRIMARY KEY, Type TEXT, Status TEXT DEFAULT 'Available', HourlyRate REAL)");
             stmt.execute("CREATE TABLE IF NOT EXISTS ActiveTickets (TicketID TEXT PRIMARY KEY, LicensePlate TEXT, VehicleType TEXT, SpotID TEXT, EntryTime DATETIME DEFAULT CURRENT_TIMESTAMP)");
             stmt.execute("CREATE TABLE IF NOT EXISTS UnpaidFines (LicensePlate TEXT PRIMARY KEY, TotalAmount REAL DEFAULT 0.0)");
-            System.out.println("Database initialized.");
+            
+            // Seed sample data for Day 2 testing
+            stmt.execute("INSERT OR IGNORE INTO ParkingSpots VALUES ('F1-S1', 'Compact', 'Available', 2.0)");
+            stmt.execute("INSERT OR IGNORE INTO ParkingSpots VALUES ('F2-S1', 'Regular', 'Available', 5.0)");
+            stmt.execute("INSERT OR IGNORE INTO ParkingSpots VALUES ('F3-S1', 'Handicapped', 'Available', 2.0)");
+            
+            System.out.println("Database Initialized.");
         } catch (SQLException e) {
             e.printStackTrace();
         }

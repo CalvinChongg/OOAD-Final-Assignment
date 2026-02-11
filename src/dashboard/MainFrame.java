@@ -1,7 +1,7 @@
 package dashboard;
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class MainFrame extends JFrame {
     private CardLayout cardLayout = new CardLayout();
@@ -9,10 +9,11 @@ public class MainFrame extends JFrame {
 
     public MainFrame() {
         setTitle("University Parking System");
-        setSize(900, 600);
+        setSize(1000, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
+        // Wiring the panels
         mainContainer.add(new EntryPanel(this), "Entry");
         mainContainer.add(new ExitPanel(this), "Exit");
         mainContainer.add(new AdminPanel(this), "Admin");
@@ -20,5 +21,7 @@ public class MainFrame extends JFrame {
         add(mainContainer);
     }
 
-    public void showPanel(String name) { cardLayout.show(mainContainer, name); }
+    public void showPanel(String name) {
+        cardLayout.show(mainContainer, name);
+    }
 }
