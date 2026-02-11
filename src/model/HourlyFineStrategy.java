@@ -2,10 +2,11 @@ package model;
 
 public class HourlyFineStrategy implements FineStrategy {
     @Override
-    public double calculateFine(int hours) {
-        // Requirement: RM 20 per hour for overstaying (past 24h)
-        if (hours <= 24) return 0.0;
-        int overstayHours = hours - 24;
+        public double calculateFine(int totalHours) {
+        if (totalHours <= 24) return 0.0;
+        
+        // RM 20 per hour for every hour past the 24-hour mark
+        int overstayHours = totalHours - 24;
         return overstayHours * 20.0;
     }
 
