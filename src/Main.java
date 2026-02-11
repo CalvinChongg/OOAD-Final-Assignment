@@ -1,5 +1,5 @@
-import dashboard.MainFrame;
 import database.SQLiteConnection;
+import dashboard.MainFrame;
 import javax.swing.SwingUtilities;
 
 public class Main {
