@@ -102,6 +102,7 @@ public class ExitPanel extends JPanel {
         if (success) {
             receiptArea.append("\nPAYMENT SUCCESSFUL (RM " + amountPaid + " via " + method + ")\n");
             JOptionPane.showMessageDialog(this, "Exit completed. Thank you!");
+            frame.refreshAdminAndReports();
             payButton.setEnabled(false);
             plateField.setText("");
             currentExit = null;

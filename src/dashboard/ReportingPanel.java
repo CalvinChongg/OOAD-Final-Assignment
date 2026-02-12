@@ -1,11 +1,11 @@
 
 package dashboard;
 
-import service.ReportService;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import service.ReportService;
 
 public class ReportingPanel extends JPanel {
     private MainFrame frame;
@@ -45,7 +45,7 @@ public class ReportingPanel extends JPanel {
         refreshAll();
     }
 
-    private void refreshAll() {
+    public void refreshAll() {
         // Current vehicles
         List<String[]> vehicles = reportService.getCurrentVehicles();
         String[] cols = {"Plate", "Type", "Spot", "Spot Type", "Entry Time"};

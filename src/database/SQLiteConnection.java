@@ -35,7 +35,8 @@ public class SQLiteConnection {
             // ActiveTickets (current parking)
             stmt.execute("CREATE TABLE IF NOT EXISTS ActiveTickets (" +
                 "ticketID TEXT PRIMARY KEY, licensePlate TEXT, vehicleType TEXT, " +
-                "spotID TEXT, entryTime STRING)");
+                "spotID TEXT, entryTime STRING, " + 
+                "hasHandicappedCard INTEGER DEFAULT 0, isVIP INTEGER DEFAULT 0)");
             // Completed tickets with payment
             stmt.execute("CREATE TABLE IF NOT EXISTS Tickets (" +
                 "ticketID TEXT PRIMARY KEY, licensePlate TEXT, spotID TEXT, " +

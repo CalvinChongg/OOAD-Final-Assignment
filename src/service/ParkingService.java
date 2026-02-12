@@ -48,7 +48,7 @@ public class ParkingService {
         return spots;
     }
 
-    public boolean assignSpot(String licensePlate, String spotId, String vehicleTypeStr) {
+    public boolean assignSpot(String licensePlate, String spotId, String vehicleTypeStr, boolean hasCard, boolean isVIP) {
         Connection conn = dbManager.getConnection();
         try {
             conn.setAutoCommit(false);
@@ -63,12 +63,15 @@ public class ParkingService {
             // Generate ticket ID: T-PLATE-TIMESTAMP
             String ticketId = "T-" + licensePlate + "-" + System.currentTimeMillis();
             PreparedStatement pstmt2 = conn.prepareStatement(
-                "INSERT INTO ActiveTickets (ticketID, licensePlate, vehicleType, spotID, entryTime) VALUES (?,?,?,?,?)");
+                "INSERT INTO ActiveTickets (ticketID, licensePlate, vehicleType, spotID, entryTime, hasHandicappedCard, isVIP) " +
+                "VALUES (?,?,?,?,?,?,?)");
             pstmt2.setString(1, ticketId);
             pstmt2.setString(2, licensePlate);
             pstmt2.setString(3, vehicleTypeStr);
             pstmt2.setString(4, spotId);
             pstmt2.setString(5, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            pstmt2.setInt(6, hasCard ? 1 : 0);
+            pstmt2.setInt(7, isVIP ? 1 : 0);
             pstmt2.executeUpdate();
 
             conn.commit();
@@ -107,6 +110,8 @@ public class ParkingService {
             data.ticketId = rs.getString("ticketID");
             data.spotId = rs.getString("spotID");
             data.entryTime = rs.getString("entryTime");
+            boolean hasCard = rs.getInt("hasHandicappedCard") == 1;
+            boolean isVIP = rs.getInt("isVIP") == 1;
 
             // 2. Get spot details
             PreparedStatement pstmt2 = conn.prepareStatement("SELECT * FROM ParkingSpots WHERE spotID = ?");
@@ -126,8 +131,9 @@ public class ParkingService {
 
             // 4. Parking fee
             data.parkingFee = data.hours * data.hourlyRate;
+
             // Handicapped discount: free if parked in Handicapped spot with card
-            if (data.spotType.equals("HANDICAPPED") && hasHandicappedCard(licensePlate)) {
+            if (data.spotType.equals("HANDICAPPED") && hasCard) {
                 data.parkingFee = 0;
             }
 
@@ -137,10 +143,12 @@ public class ParkingService {
             if (data.hours > 24) {
                 data.overstayFine = fineService.calculateOverstayFine(data.hours);
             }
+
             // Reserved misuse (parked in reserved without VIP)
-            if (data.spotType.equals("RESERVED") && !isVIP(licensePlate)) {
-                data.misuseFine = 50.0; // flat fine for misuse (can be changed)
+            if (data.spotType.equals("RESERVED") && !isVIP) {
+                data.misuseFine = 50.0; // flat fine for misuse
             }
+
             double totalFine = data.overstayFine + data.misuseFine;
 
             // 6. Unpaid fines from previous visits
@@ -156,16 +164,22 @@ public class ParkingService {
         return data;
     }
 
-    // Helper methods (simplified – in real system fetch from DB)
-    private boolean hasHandicappedCard(String plate) { return false; } // would be stored with vehicle
-    private boolean isVIP(String plate) { return false; }
-
     public boolean processPayment(String licensePlate, String ticketId, double parkingFee, double fineAmount,
                                    double unpaidFines, double amountPaid, String method) {
         Connection conn = dbManager.getConnection();
         try {
             conn.setAutoCommit(false);
-            // 1. Insert into Tickets
+
+            // 1. Get spotID before deleting the ticket
+            String spotId = null;
+            PreparedStatement pstmtGet = conn.prepareStatement("SELECT spotID FROM ActiveTickets WHERE ticketID = ?");
+            pstmtGet.setString(1, ticketId);
+            ResultSet rsGet = pstmtGet.executeQuery();
+            if (rsGet.next()) spotId = rsGet.getString("spotID");
+            else { conn.rollback(); return false; }
+
+
+            // 2. Insert into Tickets
             PreparedStatement pstmt = conn.prepareStatement(
                 "INSERT INTO Tickets (ticketID, licensePlate, spotID, entryTime, exitTime, parkingFee, fineAmount, totalPaid, paymentMethod) " +
                 "SELECT ?, ?, spotID, entryTime, ?, ?, ?, ?, ? FROM ActiveTickets WHERE ticketID = ?");
@@ -179,18 +193,18 @@ public class ParkingService {
             pstmt.setString(8, ticketId);
             pstmt.executeUpdate();
 
-            // 2. Remove from ActiveTickets
+            // 3. Remove from ActiveTickets
             PreparedStatement pstmt2 = conn.prepareStatement("DELETE FROM ActiveTickets WHERE ticketID = ?");
             pstmt2.setString(1, ticketId);
             pstmt2.executeUpdate();
 
-            // 3. Free the parking spot
-            PreparedStatement pstmt3 = conn.prepareStatement(
-                "UPDATE ParkingSpots SET status = 'Available', currentPlate = NULL WHERE spotID = (SELECT spotID FROM ActiveTickets WHERE ticketID = ?)");
-            pstmt3.setString(1, ticketId);
-            pstmt3.executeUpdate();
+            // 4. Free the parking spot
+            PreparedStatement pstmtSpot = conn.prepareStatement(
+                "UPDATE ParkingSpots SET status = 'Available', currentPlate = NULL WHERE spotID = ?");
+            pstmtSpot.setString(1, spotId);
+            pstmtSpot.executeUpdate();
 
-            // 4. Update UnpaidFines
+            // 5. Update UnpaidFines
             double remainingFines = unpaidFines + fineAmount - (amountPaid - parkingFee);
             if (remainingFines < 0) remainingFines = 0;
             PreparedStatement pstmt4 = conn.prepareStatement(

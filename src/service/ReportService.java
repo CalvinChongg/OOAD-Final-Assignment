@@ -36,14 +36,17 @@ public class ReportService {
         return revenue;
     }
 
-    public Map<String, Integer> getOccupancyByType() {
-        Map<String, Integer> map = new HashMap<>();
+    public Map<String, int[]> getOccupancyStats() {
+        Map<String, int[]> map = new HashMap<>();
         String sql = "SELECT type, COUNT(*) as total, SUM(CASE WHEN status='Occupied' THEN 1 ELSE 0 END) as occ " +
-                     "FROM ParkingSpots GROUP BY type";
+                    "FROM ParkingSpots GROUP BY type";
         try (Statement stmt = dbManager.getConnection().createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+            ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                map.put(rs.getString("type"), rs.getInt("occ"));
+                String type = rs.getString("type");
+                int total = rs.getInt("total");
+                int occ = rs.getInt("occ");
+                map.put(type, new int[]{occ, total});
             }
         } catch (SQLException e) { e.printStackTrace(); }
         return map;

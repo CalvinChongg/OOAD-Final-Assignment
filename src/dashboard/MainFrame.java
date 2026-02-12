@@ -1,8 +1,8 @@
 
 package dashboard;
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class MainFrame extends JFrame {
     private CardLayout cardLayout = new CardLayout();
@@ -48,6 +48,11 @@ public class MainFrame extends JFrame {
         setJMenuBar(menuBar);
 
         add(mainContainer);
+    }
+
+    public void refreshAdminAndReports() {
+        if (adminPanel != null) adminPanel.refreshData();
+        if (reportingPanel != null) reportingPanel.refreshAll();
     }
 
     public void showPanel(String name) { cardLayout.show(mainContainer, name); }
