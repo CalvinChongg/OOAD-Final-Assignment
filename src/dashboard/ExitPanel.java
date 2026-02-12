@@ -88,7 +88,6 @@ public class ExitPanel extends JPanel {
                 null, options, options[0]);
 
         String method = (choice == 0) ? "Cash" : "Card";
-        // In a real system you'd ask for amount paid. For simplicity, we assume full payment.
         double amountPaid = currentExit.totalDue;
 
         boolean success = parkingService.processPayment(

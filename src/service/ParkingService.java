@@ -64,7 +64,6 @@ public class ParkingService {
             String ticketId = "T-" + licensePlate + "-" + System.currentTimeMillis();
             PreparedStatement pstmt2 = conn.prepareStatement(
                 "INSERT INTO ActiveTickets (ticketID, licensePlate, vehicleType, spotID, entryTime) VALUES (?,?,?,?,?)");
-            // System.out.println("current time: " + LocalDateTime.now());
             pstmt2.setString(1, ticketId);
             pstmt2.setString(2, licensePlate);
             pstmt2.setString(3, vehicleTypeStr);
