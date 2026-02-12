@@ -30,7 +30,7 @@ public class EntryPanel extends JPanel {
         gbc.gridx = 0; gbc.gridy = 0; formPanel.add(new JLabel("License Plate:"), gbc);
         gbc.gridx = 1; plateField = new JTextField(15); formPanel.add(plateField, gbc);
         gbc.gridx = 0; gbc.gridy = 1; formPanel.add(new JLabel("Vehicle Type:"), gbc);
-        gbc.gridx = 1; vehicleTypeBox = new JComboBox<>(new String[]{"Motorcycle", "Car", "SUV/Truck"});
+        gbc.gridx = 1; vehicleTypeBox = new JComboBox<>(new String[]{"Motorcycle", "Car", "SUV/Truck", "Handicapped"});
         formPanel.add(vehicleTypeBox, gbc);
         gbc.gridx = 0; gbc.gridy = 2; handicapCardBox = new JCheckBox("Has Handicapped Card"); formPanel.add(handicapCardBox, gbc);
         gbc.gridx = 1; vipBox = new JCheckBox("VIP (for Reserved spots)"); formPanel.add(vipBox, gbc);
@@ -105,6 +105,7 @@ public class EntryPanel extends JPanel {
             case "Motorcycle": return new Motorcycle(plate);
             case "Car": return new Car(plate);
             case "SUV/Truck": return new SUV(plate);
+            case "Handicapped": return new HandicappedVehicle(plate);
             default: return null;
         }
     }
