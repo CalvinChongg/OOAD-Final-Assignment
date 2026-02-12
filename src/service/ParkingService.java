@@ -5,6 +5,7 @@ import composite.ParkingSpot;
 import database.SQLiteConnection;
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +48,7 @@ public class ParkingService {
         return spots;
     }
 
-    public boolean assignSpot(String licensePlate, String spotId, String vehicleTypeStr, boolean hasCard, boolean isVIP) {
+    public boolean assignSpot(String licensePlate, String spotId, String vehicleTypeStr) {
         Connection conn = dbManager.getConnection();
         try {
             conn.setAutoCommit(false);
@@ -62,11 +63,13 @@ public class ParkingService {
             // Generate ticket ID: T-PLATE-TIMESTAMP
             String ticketId = "T-" + licensePlate + "-" + System.currentTimeMillis();
             PreparedStatement pstmt2 = conn.prepareStatement(
-                "INSERT INTO ActiveTickets (ticketID, licensePlate, vehicleType, spotID, entryTime, hasHandicappedCard, isVIP) VALUES (?,?,?,?, CURRENT_TIMESTAMP, ?, ?)");
+                "INSERT INTO ActiveTickets (ticketID, licensePlate, vehicleType, spotID, entryTime) VALUES (?,?,?,?,?)");
+            // System.out.println("current time: " + LocalDateTime.now());
             pstmt2.setString(1, ticketId);
             pstmt2.setString(2, licensePlate);
             pstmt2.setString(3, vehicleTypeStr);
             pstmt2.setString(4, spotId);
+            pstmt2.setString(5, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             pstmt2.executeUpdate();
 
             conn.commit();
@@ -120,6 +123,7 @@ public class ParkingService {
             LocalDateTime now = LocalDateTime.now();
             data.hours = ChronoUnit.MINUTES.between(entry, now) / 60;
             if (ChronoUnit.MINUTES.between(entry, now) % 60 != 0) data.hours++; // ceiling
+            System.out.println(ChronoUnit.MINUTES.between(entry, now) + " total minutes");
 
             // 4. Parking fee
             data.parkingFee = data.hours * data.hourlyRate;
@@ -165,14 +169,13 @@ public class ParkingService {
             // 1. Insert into Tickets
             PreparedStatement pstmt = conn.prepareStatement(
                 "INSERT INTO Tickets (ticketID, licensePlate, spotID, entryTime, exitTime, parkingFee, fineAmount, totalPaid, paymentMethod) " +
-                "SELECT ?, ?, spotID, entryTime, CURRENT_TIMESTAMP, ?, ?, ?, ? FROM ActiveTickets WHERE ticketID = ?");
+                "SELECT ?, ?, spotID, entryTime, ?, ?, ?, ?, ? FROM ActiveTickets WHERE ticketID = ?");
             pstmt.setString(1, ticketId);
             pstmt.setString(2, licensePlate);
-            pstmt.setDouble(3, parkingFee);
-            pstmt.setDouble(4, fineAmount);
-            pstmt.setDouble(5, amountPaid);
-            pstmt.setString(6, method);
-            pstmt.setString(7, ticketId);
+            pstmt.setDouble(4, parkingFee);
+            pstmt.setDouble(5, fineAmount);
+            pstmt.setDouble(6, amountPaid);
+            pstmt.setString(7, method);
             pstmt.executeUpdate();
 
             // 2. Remove from ActiveTickets

@@ -35,11 +35,11 @@ public class SQLiteConnection {
             // ActiveTickets (current parking)
             stmt.execute("CREATE TABLE IF NOT EXISTS ActiveTickets (" +
                 "ticketID TEXT PRIMARY KEY, licensePlate TEXT, vehicleType TEXT, " +
-                "spotID TEXT, entryTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+                "spotID TEXT, entryTime STRING)");
             // Completed tickets with payment
             stmt.execute("CREATE TABLE IF NOT EXISTS Tickets (" +
                 "ticketID TEXT PRIMARY KEY, licensePlate TEXT, spotID TEXT, " +
-                "entryTime TIMESTAMP, exitTime TIMESTAMP, parkingFee REAL, " +
+                "entryTime STRING, exitTime STRING, parkingFee REAL, " +
                 "fineAmount REAL, totalPaid REAL, paymentMethod TEXT)");
             // Unpaid fines linked to license plate
             stmt.execute("CREATE TABLE IF NOT EXISTS UnpaidFines (" +

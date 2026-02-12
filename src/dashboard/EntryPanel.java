@@ -89,7 +89,7 @@ public class EntryPanel extends JPanel {
         boolean hasCard = handicapCardBox.isSelected();
         boolean vip = vipBox.isSelected();
 
-        boolean success = parkingService.assignSpot(plate, spotId, type, hasCard, vip);
+        boolean success = parkingService.assignSpot(plate, spotId, type);
         if (success) {
             JOptionPane.showMessageDialog(this, "Parking successful!\nTicket ID: T-" + plate + "-" + System.currentTimeMillis());
             spotListModel.clear();
