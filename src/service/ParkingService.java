@@ -171,10 +171,12 @@ public class ParkingService {
                 "SELECT ?, ?, spotID, entryTime, ?, ?, ?, ?, ? FROM ActiveTickets WHERE ticketID = ?");
             pstmt.setString(1, ticketId);
             pstmt.setString(2, licensePlate);
+            pstmt.setString(3, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             pstmt.setDouble(4, parkingFee);
             pstmt.setDouble(5, fineAmount);
             pstmt.setDouble(6, amountPaid);
             pstmt.setString(7, method);
+            pstmt.setString(8, ticketId);
             pstmt.executeUpdate();
 
             // 2. Remove from ActiveTickets
