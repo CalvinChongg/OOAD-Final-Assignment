@@ -25,7 +25,7 @@ public class AdminPanel extends JPanel {
         // Top: fine scheme
         JPanel topPanel = new JPanel();
         topPanel.add(new JLabel("Fine Scheme:"));
-        schemeCombo = new JComboBox<>(new String[]{"FIXED", "PROGRESSIVE", "HOURLY"});
+        schemeCombo = new JComboBox<>(new String[]{"FIXED", "PROGRESSIVE", "HOURLY", "HOURLY-CAP"});
         schemeCombo.setSelectedItem(fineService.getCurrentScheme());
         topPanel.add(schemeCombo);
         applySchemeBtn = new JButton("Apply");

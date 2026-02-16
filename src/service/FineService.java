@@ -35,11 +35,15 @@ public class FineService {
         switch (scheme) {
             case "FIXED": return 50.0;
             case "PROGRESSIVE":
-                if (hoursOver24 <= 24) return 50.0;
-                else if (hoursOver24 <= 48) return 150.0; // 50+100
-                else if (hoursOver24 <= 72) return 300.0; // 50+100+150
-                else return 500.0; // 50+100+150+200
+            if (hoursOver24 <= 24) return 50.0;
+            else if (hoursOver24 <= 48) return 150.0; // 50+100
+            else if (hoursOver24 <= 72) return 300.0; // 50+100+150
+            else return 500.0; // 50+100+150+200
             case "HOURLY": return hoursOver24 * 20.0;
+            case "HOURLY-CAP": {
+                double hourlyFine = hoursOver24 * 20.0;
+                return Math.min(hourlyFine, 500.0);
+            }
             default: return 0;
         }
     }

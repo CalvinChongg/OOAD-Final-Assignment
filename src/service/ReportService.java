@@ -52,6 +52,7 @@ public class ReportService {
         return map;
     }
 
+    // For Report Panel - list of outstanding fines
     public List<String[]> getOutstandingFines() {
         List<String[]> list = new ArrayList<>();
         try (Statement stmt = dbManager.getConnection().createStatement();
@@ -61,5 +62,20 @@ public class ReportService {
             }
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
+    }
+
+    // For Exit Panel - get unpaid fines for a specific plate
+    public double getUnpaidFinesForPlate(String licensePlate) {
+        String sql = "SELECT totalAmount FROM UnpaidFines WHERE licensePlate = ?";
+        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
+            pstmt.setString(1, licensePlate);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("totalAmount");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0.0;
     }
 }

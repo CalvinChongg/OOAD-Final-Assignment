@@ -5,10 +5,12 @@ import java.awt.*;
 import javax.swing.*;
 import service.ParkingService;
 import service.ParkingService.ExitData;
+import service.ReportService;
 
 public class ExitPanel extends JPanel {
     private MainFrame frame;
     private ParkingService parkingService = ParkingService.getInstance();
+    private ReportService reportService = new ReportService();
 
     private JTextField plateField;
     private JButton searchButton, payButton;
@@ -81,14 +83,31 @@ public class ExitPanel extends JPanel {
 
     private void processPayment() {
         if (currentExit == null) return;
+
+        // Ask how much the customer wants to pay
+        String input = JOptionPane.showInputDialog(this,
+            "Total due: RM " + String.format("%.2f", currentExit.totalDue) +
+            "\nEnter amount to pay:", "Payment", JOptionPane.QUESTION_MESSAGE);
+        if (input == null) return; // cancelled
+
+        double amountPaid;
+        try {
+            amountPaid = Double.parseDouble(input);
+            if (amountPaid < 0) throw new NumberFormatException();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Invalid amount");
+            return;
+        }
+
+        // Payment method selection
         String[] options = {"Cash", "Card"};
         int choice = JOptionPane.showOptionDialog(this,
                 "Select payment method", "Payment",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
                 null, options, options[0]);
 
-        String method = (choice == 0) ? "Cash" : "Card";
-        double amountPaid = currentExit.totalDue;
+        String method = (choice == 0) ? "Cash" : "Card";   
+        if (choice == -1) return; // cancelled
 
         boolean success = parkingService.processPayment(
                 plateField.getText().trim(),
@@ -99,10 +118,18 @@ public class ExitPanel extends JPanel {
                 amountPaid,
                 method
         );
+        
         if (success) {
             receiptArea.append("\nPAYMENT SUCCESSFUL (RM " + amountPaid + " via " + method + ")\n");
+            double remaining = reportService.getUnpaidFinesForPlate(plateField.getText().trim());
+
+            if (remaining > 0) {
+            receiptArea.append("Remaining unpaid fines: RM " + String.format("%.2f", remaining) + "\n");
+            }
+
             JOptionPane.showMessageDialog(this, "Exit completed. Thank you!");
             frame.refreshAdminAndReports();
+
             payButton.setEnabled(false);
             plateField.setText("");
             currentExit = null;
