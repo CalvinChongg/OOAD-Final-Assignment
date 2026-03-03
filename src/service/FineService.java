@@ -44,6 +44,12 @@ public class FineService {
                 double hourlyFine = hoursOver24 * 20.0;
                 return Math.min(hourlyFine, 500.0);
             }
+            // case "MAXCAP": 
+            //     double totalfine = hoursOver24 * 20.0;
+            //     if (totalfine <= 500)
+            //         return totalfine;
+            //     else 
+            //         return 500;
             default: return 0;
         }
     }
