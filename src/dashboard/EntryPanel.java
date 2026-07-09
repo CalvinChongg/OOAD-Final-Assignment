@@ -30,7 +30,7 @@ public class EntryPanel extends JPanel {
         gbc.gridx = 0; gbc.gridy = 0; formPanel.add(new JLabel("License Plate:"), gbc);
         gbc.gridx = 1; plateField = new JTextField(15); formPanel.add(plateField, gbc);
         gbc.gridx = 0; gbc.gridy = 1; formPanel.add(new JLabel("Vehicle Type:"), gbc);
-        gbc.gridx = 1; vehicleTypeBox = new JComboBox<>(new String[]{"Motorcycle", "Car", "SUV/Truck", "Handicapped"});
+        gbc.gridx = 1; vehicleTypeBox = new JComboBox<>(new String[]{"Motorcycle", "Car", "SUV/Truck", "Handicapped", "Bus"});
         formPanel.add(vehicleTypeBox, gbc);
         gbc.gridx = 0; gbc.gridy = 2; handicapCardBox = new JCheckBox("Has Handicapped Card"); formPanel.add(handicapCardBox, gbc);
         gbc.gridx = 1; vipBox = new JCheckBox("VIP (for Reserved spots)"); formPanel.add(vipBox, gbc);
@@ -92,6 +92,7 @@ public class EntryPanel extends JPanel {
         boolean success = parkingService.assignSpot(plate, spotId, type, hasCard, vip);
         if (success) {
             JOptionPane.showMessageDialog(this, "Parking successful!\nTicket ID: T-" + plate + "-" + System.currentTimeMillis());
+            frame.refreshAdminAndReports();
             spotListModel.clear();
             parkButton.setEnabled(false);
             plateField.setText("");

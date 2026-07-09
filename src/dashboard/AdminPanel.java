@@ -25,7 +25,7 @@ public class AdminPanel extends JPanel {
         // Top: fine scheme
         JPanel topPanel = new JPanel();
         topPanel.add(new JLabel("Fine Scheme:"));
-        schemeCombo = new JComboBox<>(new String[]{"FIXED", "PROGRESSIVE", "HOURLY"});
+        schemeCombo = new JComboBox<>(new String[]{"FIXED", "PROGRESSIVE", "HOURLY", "HOURLY-CAP"});
         schemeCombo.setSelectedItem(fineService.getCurrentScheme());
         topPanel.add(schemeCombo);
         applySchemeBtn = new JButton("Apply");
@@ -45,24 +45,27 @@ public class AdminPanel extends JPanel {
         applySchemeBtn.addActionListener(e -> {
             fineService.setScheme((String) schemeCombo.getSelectedItem());
             JOptionPane.showMessageDialog(this, "Fine scheme updated");
+            frame.refreshAdminAndReports();
         });
         refreshData();
     }
 
-    private void refreshData() {
+    public void refreshData() {
         // Occupancy by type
-        Map<String, Integer> occMap = reportService.getOccupancyByType();
+        Map<String, int[]> stats = reportService.getOccupancyStats();
         String[] columns = {"Spot Type", "Occupied", "Total", "Occupancy %"};
         DefaultTableModel model = new DefaultTableModel(columns, 0);
-        for (Map.Entry<String, Integer> e : occMap.entrySet()) {
-            // We need total per type; for simplicity we fetch again
-            // In a real system you'd have a method to get totals by type.
-            // Here we show dummy data.
-            model.addRow(new Object[]{e.getKey(), e.getValue(), "?", "?"});
+
+        for (Map.Entry<String, int[]> entry : stats.entrySet()) {
+            String type = entry.getKey();
+            int occ = entry.getValue()[0];
+            int total = entry.getValue()[1];
+            String percent = total == 0 ? "0%" : String.format("%.1f%%", (occ * 100.0 / total));
+            model.addRow(new Object[]{type, occ, total, percent});
         }
         occupancyTable.setModel(model);
 
-        // Revenue
+        // 2. Update revenue label
         double rev = reportService.getTotalRevenue();
         revenueLabel.setText("Total Revenue: RM " + String.format("%.2f", rev));
     }

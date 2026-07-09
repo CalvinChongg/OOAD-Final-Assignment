@@ -1,18 +1,19 @@
 
 package dashboard;
 
-import service.ReportService;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import java.util.Map;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import service.ReportService;
 
 public class ReportingPanel extends JPanel {
     private MainFrame frame;
     private ReportService reportService = new ReportService();
 
     private JTabbedPane tabbedPane;
-    private JTable currentVehiclesTable, finesTable;
+    private JTable currentVehiclesTable, finesTable, occTable;
     private JLabel revenueLabel;
 
     public ReportingPanel(MainFrame frame) {
@@ -33,7 +34,7 @@ public class ReportingPanel extends JPanel {
         tabbedPane.addTab("Revenue", revenuePanel);
 
         // Occupancy report
-        JTable occTable = new JTable();
+        occTable = new JTable();
         tabbedPane.addTab("Occupancy", new JScrollPane(occTable));
 
         // Fine report (outstanding)
@@ -45,13 +46,27 @@ public class ReportingPanel extends JPanel {
         refreshAll();
     }
 
-    private void refreshAll() {
+    public void refreshAll() {
         // Current vehicles
         List<String[]> vehicles = reportService.getCurrentVehicles();
         String[] cols = {"Plate", "Type", "Spot", "Spot Type", "Entry Time"};
         DefaultTableModel model = new DefaultTableModel(cols, 0);
         for (String[] row : vehicles) model.addRow(row);
         currentVehiclesTable.setModel(model);
+
+        // Occupancy table
+        Map<String, int[]> stats = reportService.getOccupancyStats();
+        String[] occColumns = {"Spot Type", "Occupied", "Total", "Occupancy %"};
+        DefaultTableModel occModel = new DefaultTableModel(occColumns, 0);
+        for (Map.Entry<String, int[]> entry : stats.entrySet()) {
+            String type = entry.getKey();
+            int occ = entry.getValue()[0];
+            int total = entry.getValue()[1];
+            String percent = total == 0 ? "0%" : String.format("%.1f%%", (occ * 100.0 / total));
+            occModel.addRow(new Object[]{type, occ, total, percent});
+        }
+        occTable.setModel(occModel);
+
 
         // Revenue
         double rev = reportService.getTotalRevenue();

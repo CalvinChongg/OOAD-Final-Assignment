@@ -36,19 +36,23 @@ public class ReportService {
         return revenue;
     }
 
-    public Map<String, Integer> getOccupancyByType() {
-        Map<String, Integer> map = new HashMap<>();
+    public Map<String, int[]> getOccupancyStats() {
+        Map<String, int[]> map = new HashMap<>();
         String sql = "SELECT type, COUNT(*) as total, SUM(CASE WHEN status='Occupied' THEN 1 ELSE 0 END) as occ " +
-                     "FROM ParkingSpots GROUP BY type";
+                    "FROM ParkingSpots GROUP BY type";
         try (Statement stmt = dbManager.getConnection().createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+            ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                map.put(rs.getString("type"), rs.getInt("occ"));
+                String type = rs.getString("type");
+                int total = rs.getInt("total");
+                int occ = rs.getInt("occ");
+                map.put(type, new int[]{occ, total});
             }
         } catch (SQLException e) { e.printStackTrace(); }
         return map;
     }
 
+    // For Report Panel - list of outstanding fines
     public List<String[]> getOutstandingFines() {
         List<String[]> list = new ArrayList<>();
         try (Statement stmt = dbManager.getConnection().createStatement();
@@ -58,5 +62,20 @@ public class ReportService {
             }
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
+    }
+
+    // For Exit Panel - get unpaid fines for a specific plate
+    public double getUnpaidFinesForPlate(String licensePlate) {
+        String sql = "SELECT totalAmount FROM UnpaidFines WHERE licensePlate = ?";
+        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
+            pstmt.setString(1, licensePlate);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("totalAmount");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0.0;
     }
 }

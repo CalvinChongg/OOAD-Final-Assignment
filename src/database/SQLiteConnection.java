@@ -35,11 +35,12 @@ public class SQLiteConnection {
             // ActiveTickets (current parking)
             stmt.execute("CREATE TABLE IF NOT EXISTS ActiveTickets (" +
                 "ticketID TEXT PRIMARY KEY, licensePlate TEXT, vehicleType TEXT, " +
-                "spotID TEXT, entryTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+                "spotID TEXT, entryTime STRING, " + 
+                "hasHandicappedCard INTEGER DEFAULT 0, isVIP INTEGER DEFAULT 0)");
             // Completed tickets with payment
             stmt.execute("CREATE TABLE IF NOT EXISTS Tickets (" +
                 "ticketID TEXT PRIMARY KEY, licensePlate TEXT, spotID TEXT, " +
-                "entryTime TIMESTAMP, exitTime TIMESTAMP, parkingFee REAL, " +
+                "entryTime STRING, exitTime STRING, parkingFee REAL, " +
                 "fineAmount REAL, totalPaid REAL, paymentMethod TEXT)");
             // Unpaid fines linked to license plate
             stmt.execute("CREATE TABLE IF NOT EXISTS UnpaidFines (" +
@@ -62,15 +63,15 @@ public class SQLiteConnection {
 
         // Create 5 floors, 2 rows each, 5 spots per row
         SpotType[] types = SpotType.values();
-        double[] rates = {2.0, 5.0, 2.0, 10.0};
-        String[] typeNames = {"COMPACT", "REGULAR", "HANDICAPPED", "RESERVED"};
+        double[] rates = {2.0, 5.0, 2.0, 10.0, 8.0};
+        String[] typeNames = {"COMPACT", "REGULAR", "HANDICAPPED", "RESERVED", "ELECTRIC"};
 
         try (PreparedStatement pstmt = connection.prepareStatement(
                 "INSERT OR IGNORE INTO ParkingSpots VALUES (?,?,?,?,?,?,?,?)")) {
             for (int f = 1; f <= 5; f++) {
                 for (int r = 1; r <= 2; r++) {
                     for (int s = 1; s <= 5; s++) {
-                        int typeIndex = (s - 1) % 4; // mix types
+                        int typeIndex = (s - 1) % 5; // mix types
                         String spotId = "F" + f + "-R" + r + "-S" + s;
                         pstmt.setString(1, spotId);
                         pstmt.setInt(2, f);
